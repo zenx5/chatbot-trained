@@ -118,14 +118,21 @@ jQuery(document).ready(function ($) {
     }
 
     submitButton.on('click', function () {
-        var message = messageInput.val().trim();
-      
+        const message = messageInput.val().trim();
+        const context = [];
+        const domContext = document.querySelectorAll('.chat-message');
+
+        for( const element of domContext.values()) {
+            context.push( element .innerText )
+        }
+
         if (!message) {
             return;
         }
-            
+
         messageInput.val('');
         appendMessage(message, 'user');
+
 
         $.ajax({
             url: chatbot_chatgpt_params.ajax_url,
@@ -133,12 +140,14 @@ jQuery(document).ready(function ($) {
             data: {
                 action: 'chatbot_chatgpt_send_message',
                 message: message,
+                context: context
             },
             beforeSend: function () {
                 showTypingIndicator();
                 submitButton.prop('disabled', true);
             },
             success: function (response) {
+                console.log( response )
                 removeTypingIndicator();
                 if (response.success) {
                     appendMessage(response.data, 'bot');

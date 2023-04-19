@@ -66,6 +66,7 @@ function chatbot_chatgpt_settings_page_html() {
             // Update the chatgpt_subsequent_greeting value in the local storage when the form is submitted - Ver 1.3.0
             chatgptSettingsForm.addEventListener('submit', function() {
                 localStorage.setItem('chatgpt_name', chatgptNameInput.value);
+                localStorage.setItem('chatgpt_info', chatgptInfoInput.value);
                 localStorage.setItem('chatgpt_initial_greeting', chatgptInitialGreetingInput.value);
                 localStorage.setItem('chatgpt_subsequent_greeting', chatgptSubsequentGreetingInput.value);
                 localStorage.setItem('chatgpt_open_status', chatgptOpenStatusInput.checked);
@@ -79,6 +80,7 @@ function chatbot_chatgpt_settings_page_html() {
             <a href="?page=chatbot-chatgpt&tab=api_model" class="nav-tab <?php echo $active_tab == 'api_model' ? 'nav-tab-active' : ''; ?>">API/Model</a>
             <a href="?page=chatbot-chatgpt&tab=settings" class="nav-tab <?php echo $active_tab == 'settings' ? 'nav-tab-active' : ''; ?>">Settings</a>
             <!-- Coming Soon in Ver 2.0.0 -->
+            <a href="?page=chatbot-chatgpt&tab=trainer" class="nav-tab <?php echo $active_tab == 'trainer' ? 'nav-tab-active' : ''; ?>">Trainer</a>
             <!-- <a href="?page=chatbot-chatgpt&tab=premium" class="nav-tab <?php echo $active_tab == 'premium' ? 'nav-tab-active' : ''; ?>">Premium</a> -->
             <a href="?page=chatbot-chatgpt&tab=support" class="nav-tab <?php echo $active_tab == 'support' ? 'nav-tab-active' : ''; ?>">Support</a>
         </h2>
@@ -91,6 +93,9 @@ function chatbot_chatgpt_settings_page_html() {
             } elseif ($active_tab == 'api_model') {
                 settings_fields('chatbot_chatgpt_api_model');
                 do_settings_sections('chatbot_chatgpt_api_model');
+            } elseif ($active_tab == 'trainer') {
+                settings_fields('chatbot_chatgpt_trainer');
+                do_settings_sections('chatbot_chatgpt_trainer');
             // Coming Soon in Ver 2.0.0
             // } elseif ($active_tab == 'premium') {
             //     settings_fields('chatbot_chatgpt_premium');
@@ -138,6 +143,7 @@ function chatbot_chatgpt_settings_init() {
 
     // Settings settings tab - Ver 1.3.0
     register_setting('chatbot_chatgpt_settings', 'chatgpt_bot_name');
+    register_setting('chatbot_chatgpt_settings', 'chatgpt_bot_info');
     register_setting('chatbot_chatgpt_settings', 'chatgpt_start_status');
     register_setting('chatbot_chatgpt_settings', 'chatgpt_initial_greeting');
     register_setting('chatbot_chatgpt_settings', 'chatgpt_subsequent_greeting');
@@ -153,6 +159,14 @@ function chatbot_chatgpt_settings_init() {
         'chatgpt_bot_name',
         'Bot Name',
         'chatbot_chatgpt_bot_name_callback',
+        'chatbot_chatgpt_settings',
+        'chatbot_chatgpt_settings_section'
+    );
+
+    add_settings_field(
+        'chatgpt_bot_info',
+        'Details',
+        'chatbot_chatgpt_bot_info_callback',
         'chatbot_chatgpt_settings',
         'chatbot_chatgpt_settings_section'
     );
@@ -180,6 +194,34 @@ function chatbot_chatgpt_settings_init() {
         'chatbot_chatgpt_settings',
         'chatbot_chatgpt_settings_section'
     );
+
+    // Trainer settings tab - Ver 1.3.0
+    register_setting('chatbot_chatgpt_trainer', 'chatgpt_main_prompt');
+    register_setting('chatbot_chatgpt_trainer', 'chatgpt_complementary_prompt');
+
+    add_settings_section(
+        'chatbot_chatgpt_trainer_section',
+        'Trainer Settings',
+        'chatbot_chatgpt_trainer_section_callback',
+        'chatbot_chatgpt_trainer'
+    );
+
+    add_settings_field(
+        'chatbot_chatgpt_main_prompt',
+        'Main Prompt',
+        'chatbot_chatgpt_main_prompt_callback',
+        'chatbot_chatgpt_trainer',
+        'chatbot_chatgpt_trainer_section'
+    );
+
+    add_settings_field(
+        'chatbot_chatgpt_secondary_prompt',
+        'Secondary Prompt',
+        'chatbot_chatgpt_secondary_prompt_callback',
+        'chatbot_chatgpt_trainer',
+        'chatbot_chatgpt_trainer_section'
+    );
+
 
     // Premium settings tab - Ver 1.3.0
     register_setting('chatbot_chatgpt_premium', 'chatgpt_premium_key');
@@ -228,6 +270,12 @@ function chatbot_chatgpt_api_model_section_callback($args) {
 function chatbot_chatgpt_settings_section_callback($args) {
     ?>
     <p>Configure settings for the Chatbot ChatGPT plugin, including the bot name, start status, and greetings.</p>
+    <?php
+}
+
+function chatbot_chatgpt_trainer_section_callback($args) {
+    ?>
+        <p>Use this fields for train your chatbot</p>
     <?php
 }
 
@@ -316,6 +364,14 @@ function chatbot_chatgpt_bot_name_callback($args) {
     <?php
 }
 
+function chatbot_chatgpt_bot_info_callback($args) {
+    $info = get_option('chatgpt_bot_info', '');
+    ?>
+    <textarea id="chatgpt_bot_info" name="chatgpt_bot_info" class="regular-text" rows="10" ><?php echo esc_attr( $info ); ?></textarea>
+    <?php
+
+}
+
 function chatbot_chatgpt_start_status_callback($args) {
     $start_status = get_option('chatgpt_start_status', 'closed');
     ?>
@@ -337,6 +393,20 @@ function chatbot_chatgpt_subsequent_greeting_callback($args) {
     $subsequent_greeting = get_option('chatgpt_subsequent_greeting', 'Hello again! How can I help you?');
     ?>
     <textarea id="chatgpt_subsequent_greeting" name="chatgpt_subsequent_greeting" rows="2" cols="50"><?php echo esc_textarea( $subsequent_greeting ); ?></textarea>
+    <?php
+}
+
+function chatbot_chatgpt_main_prompt_callback($args) {
+    $main_prompt = get_option('chatgpt_main_prompt');
+    ?>
+    <textarea id="chatgpt_main_prompt" name="chatgpt_main_prompt" class="regular-text" rows="15" ><?php echo esc_attr( $main_prompt ); ?></textarea>
+    <?php
+}
+
+function chatbot_chatgpt_secondary_prompt_callback($args) {
+    $secondary_prompt = get_option('chatgpt_secondary_prompt');
+    ?>
+    <textarea id="chatgpt_secondary_prompt" name="chatgpt_secondary_prompt" class="regular-text" rows="15" ><?php echo esc_attr( $secondary_prompt ); ?></textarea>
     <?php
 }
 
