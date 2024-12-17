@@ -1,6 +1,6 @@
 # Chatbot ChatGPT for WordPress
-Original Creator: Kognetiks
-Fork by: Zenx5
+**Original Creator:** Kognetiks <br/>
+**Fork by:** Zenx5
 
 ## Description
 
@@ -23,7 +23,7 @@ Chatbot ChatGPT leverages the OpenAI platform using the gpt-3.5-turbo model brin
 * Setting to determine if chatbot should start opened or closed
 * Chatbot maintains state when navigating between pages
 * Chatbot name and initial and subsequent greetings are configurable
-* [Fork]: Training area in the dashboard
+* **[FORK]:** Training area in the dashboard
 
 ## Installation 
 
