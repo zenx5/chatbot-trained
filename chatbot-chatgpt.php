@@ -55,6 +55,7 @@ function chatbot_chatgpt_send_message() {
     $model = get_option('chatgpt_model_choice', 'gpt-3.5-turbo');
     // Send only clean text via the API
     $message = sanitize_text_field($_POST['message']);
+    $context = $_POST['context'];
 
     // Check API key and message
     if (!$api_key || !$message) {
@@ -62,7 +63,8 @@ function chatbot_chatgpt_send_message() {
     }
 
     // Send message to ChatGPT API
-    $response = chatbot_chatgpt_call_api($api_key, $message);
+    // $response = chatbot_chatgpt_call_api($api_key, $context);
+    $response = chatbot_chatgpt_call_api($api_key, $message, $context);
 
     // Return response
     wp_send_json_success($response);
@@ -80,9 +82,11 @@ add_action('wp_ajax_nopriv_chatbot_chatgpt_send_message', 'chatbot_chatgpt_send_
 add_filter('plugin_action_links_' . plugin_basename(__FILE__), 'chatbot_chatgpt_plugin_action_links');
 
 // Call the ChatGPT API
-function chatbot_chatgpt_call_api($api_key, $message) {
+function chatbot_chatgpt_call_api($api_key, $message, $context = []) {
     // The current ChatGPT API URL endpoint for gpt-3.5-turbo and gpt-4
     $api_url = 'https://api.openai.com/v1/chat/completions';
+    $main_prompt = esc_attr(get_option('chatgpt_main_prompt', ''));
+    $secondary_prompt = esc_attr(get_option('chatgpt_secondary_prompt', ''));
 
     $headers = array(
         'Authorization' => 'Bearer ' . $api_key,
@@ -95,11 +99,43 @@ function chatbot_chatgpt_call_api($api_key, $message) {
     $model = get_option('chatgpt_model_choice', 'gpt-3.5-turbo');
     // console.log($model);
 
+    $messages = [];
+
+    if( $main_prompt !== '') {
+        $messages[] = [
+            'role' => 'user',
+            'content' => $main_prompt
+        ];
+    }
+
+    if( $secondary_prompt !== '') {
+        $messages[] = [
+            'role' => 'user',
+            'content' => $secondary_prompt
+        ];
+    }
+
+    foreach( $context as $index => $msg ) {
+        $role = $index % 2 == 0 ? 'assistant' : 'user'; // Se utiliza el operador == para hacer una comparación correcta
+        $content = $msg;
+        $messages[] = compact('role', 'content'); // Se utiliza compact para crear el array asociativo
+    }
+
+
+
+    $messages[] = [
+        'role' => 'user',
+        'content' => $message
+    ];
+
+    // return json_encode($messages);
+
+
     $body = array(
         'max_tokens' => 150,
         'model' => $model,
         'temperature' => 0.5,
-        'messages' => array(array('role' => 'user', 'content' => $message)),
+        'messages' => $messages
     );
 
     $args = array(
